@@ -1,78 +1,97 @@
-node-dns-sd
-===============
+# 📡 node-dns-sd
 
-The node-dns-sd is a Node.js module which is a pure javascript implementation of mDNS/DNS-SD (Apple Bonjour) browser and packet parser. It allows you to discover IPv4 addresses in the local network specifying a service name such as `_http._tcp.local`. Besides, it allows you to monitor mDNS/DNS-SD packets.
+[![CI](https://github.com/fonestardev/node-dns-sd/actions/workflows/ci.yml/badge.svg)](https://github.com/fonestardev/node-dns-sd/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/@fonestardev/node-dns-sd.svg)](https://github.com/fonestardev/node-dns-sd/packages)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
 
-This module focuses on discovering IPv4 addresses from a service name. It is not a full implementation of mDNS/DNS-SD. If you want to announce services or send custom query packets or discover IPv6 addresses, you should choice another one from [mDNS/DNS-SD nodejs implementations](https://www.npmjs.com/search?q=mDNS&page=1&ranking=optimal).
+> 🔍 A pure JavaScript implementation of mDNS/DNS-SD (Apple Bonjour) browser and packet parser for Node.js
 
-## Dependencies
+The **node-dns-sd** module allows you to discover devices and services on your local network using mDNS/DNS-SD protocol. Specify a service name like `_http._tcp.local` and find all matching devices with their IPv4 addresses.
 
-* [Node.js](https://nodejs.org/en/) 18 +
-  * Though the node-dns-sd works on older version of Node for now, it is strongly recommended to use the latest version of Node.
+## ✨ Features
 
-## Installation
+- 🔎 **Service Discovery** - Find devices by service name (Chromecast, AirPlay, printers, etc.)
+- 🏠 **Localhost Discovery** - Discover services running on the same machine
+- 📊 **Packet Monitoring** - Watch and parse all mDNS/DNS-SD traffic
+- 🔒 **Security Hardened** - Protection against DNS pointer loops and buffer overflows
+- 📝 **TypeScript Support** - Full type definitions included
+- ⚡ **Promise-based API** - Modern async/await support
+- 🎯 **Filtering** - String or function-based device filtering
 
+---
+
+## 📦 Installation
+
+### From GitHub Packages
+
+```bash
+npm install @fonestardev/node-dns-sd
 ```
-$ cd ~
-$ npm install node-dns-sd
+
+### From Source
+
+```bash
+git clone https://github.com/fonestardev/node-dns-sd.git
+cd node-dns-sd
+npm install
 ```
 
----------------------------------------
-## Table of Contents
+---
 
-* [Quick Start](#Quick-Start)
-  * [Discover devices](#Quick-Start-1)
-  * [Monitor packets](#Quick-Start-2)
-* [`DnsSd` object](#DnsSd-object)
-  * [discover() method](#DnsSd-discover-method)
-  * [startMonitoring() method](#DnsSd-startMonitoring-method)
-  * [stopMonitoring() method](#DnsSd-stopMonitoring-method)
-  * [`ondata` event handler](#DnsSd-ondata-event-handler)
-* [`DnsSdPacket` object](#DnsSdPacket-object)
-* [Release Note](#Release-Note)
-* [References](#References)
-* [License](#License)
+## 📋 Requirements
 
----------------------------------------
-## <a id="Quick-Start">Quick Start</a>
+- 📌 **Node.js** 18.x or higher
+- 🖥️ Network interface with multicast support
 
-### <a id="Quick-Start-1">Discover devices</a>
+---
 
-The node-dns-sd supports a Promise-based method for discovering devices in the local network. The sample code below shows how to discover devices from a service name. In the sample code, `_googlecast._tcp.local` is specified for a service name.
+## 📚 Table of Contents
 
-```JavaScript
-const mDnsSd = require('node-dns-sd');
+- [🚀 Quick Start](#-quick-start)
+  - [Discover Devices](#discover-devices)
+  - [Discover Localhost Services](#discover-localhost-services)
+  - [Monitor Packets](#monitor-packets)
+- [📖 API Reference](#-api-reference)
+  - [discover()](#discover-method)
+  - [startMonitoring()](#startmonitoring-method)
+  - [stopMonitoring()](#stopmonitoring-method)
+  - [ondata Event](#ondata-event-handler)
+- [📦 DnsSdPacket Object](#-dnspacket-object)
+- [🔷 TypeScript](#-typescript)
+- [🧪 Testing](#-testing)
+- [📝 Release Notes](#-release-notes)
+- [📚 References](#-references)
+- [📄 License](#-license)
 
-mDnsSd.discover({
+---
+
+## 🚀 Quick Start
+
+### Discover Devices
+
+```javascript
+const dnssd = require('@fonestardev/node-dns-sd');
+
+// Discover Google Cast devices
+dnssd.discover({
   name: '_googlecast._tcp.local'
-}).then((device_list) =>{
-  console.log(JSON.stringify(device_list, null, '  '));
+}).then((devices) => {
+  console.log(JSON.stringify(devices, null, 2));
 }).catch((error) => {
   console.error(error);
 });
 ```
 
-The sample code above will output the result as follows:
-
-```
+**Output:**
+```json
 [
   {
-    "address": "192.168.11.20",
-    "fqdn": "BRAVIA-4K-GB-0000043926ff4f7fed3bf248db400000._googlecast._tcp.local",
-    "modelName": "BRAVIA 4K GB",
-    "familyName": "KJ-43X8300D",
-    "service": {
-      "port": 8009,
-      "protocol": "tcp",
-      "type": "googlecast"
-    },
-    "packet": {...}
-  },
-  {
-    "address": "192.168.11.12",
-    "fqdn": "Google-Home-000001eda257d1f8ea765acd79500000._googlecast._tcp.local",
-    "modelName": "Google Home",
-    "familyName": "Google Home in living room",
+    "address": "192.168.1.20",
+    "fqdn": "Chromecast-abc123._googlecast._tcp.local",
+    "modelName": "Chromecast",
+    "familyName": "Living Room TV",
     "service": {
       "port": 8009,
       "protocol": "tcp",
@@ -83,402 +102,185 @@ The sample code above will output the result as follows:
 ]
 ```
 
-As you can see, you can obtain information of devices which support the service specified to the [`discover()`](#DnsSd-discover-method) method.
+### Discover Localhost Services
 
-The value of the `packet` property in the response is a [`DnsSdPacket`](#DnsSdPacket-object) object which represents a DNS-SD response packet. You can find more information in the object.
+🆕 **New Feature!** Discover services running on the same machine:
 
-### <a id="Quick-Start-2">Monitor packets</a>
+```javascript
+const dnssd = require('@fonestardev/node-dns-sd');
 
-The node-dns-sd has a mDNS/DNS-SD packet parser. It can watch mDNS/DNS-SD packets in the local network and reports the packets as human-readable information.
-
-```JavaScript
-const mDnsSd = require('node-dns-sd');
-
-mDnsSd.ondata = (packet) => {
-  console.log(JSON.stringify(packet, null, '  '));
-};
-
-mDnsSd.startMonitoring().then(() => {
-  console.log('Started.');
-}).catch((error) => {
-  console.error(error);
+// Enable localhost discovery
+dnssd.discover({
+  name: '_http._tcp.local',
+  localhost: true  // 👈 Enable local machine discovery
+}).then((devices) => {
+  console.log('Found devices (including localhost):');
+  devices.forEach(device => {
+    console.log(`  ${device.address}: ${device.fqdn}`);
+  });
 });
 ```
 
-The sample code above will output the result as follows:
+### Monitor Packets
 
+```javascript
+const dnssd = require('@fonestardev/node-dns-sd');
+
+// Set up packet handler
+dnssd.ondata = (packet) => {
+  const type = packet.header.qr === 0 ? '❓ Query' : '✅ Response';
+  console.log(`${type} from ${packet.address}`);
+};
+
+// Start monitoring
+dnssd.startMonitoring().then(() => {
+  console.log('🎧 Monitoring mDNS traffic...');
+});
+
+// Stop with: dnssd.stopMonitoring()
 ```
-...
+
+---
+
+## 📖 API Reference
+
+### `discover()` method
+
+Discovers devices/services on the local network. Returns a `Promise<DiscoveredDevice[]>`.
+
+```javascript
+dnssd.discover(params)
+```
+
+#### Parameters
+
+| Property | Type | Required | Description |
+|:---------|:-----|:---------|:------------|
+| `name` | String \| String[] | ✅ | Service name(s). Example: `"_http._tcp.local"` |
+| `type` | String | ❌ | Query type (`"PTR"`, `"A"`, etc.). Default: `"*"` |
+| `key` | String | ❌ | Deduplication key: `"address"` (default) or `"fqdn"` |
+| `wait` | Integer | ❌ | Discovery duration in seconds. Default: `3` |
+| `quick` | Boolean | ❌ | Return immediately on first match. Default: `false` |
+| `filter` | String \| Function | ❌ | Filter devices by string match or custom function |
+| `localhost` | Boolean | ❌ | 🆕 Include services on local machine. Default: `false` |
+
+#### Common Service Names
+
+| Service | Name |
+|:--------|:-----|
+| 🎬 Chromecast | `_googlecast._tcp.local` |
+| 📺 AirPlay | `_airplay._tcp.local` |
+| 🖨️ Printers | `_printer._tcp.local` |
+| 🌐 HTTP Servers | `_http._tcp.local` |
+| 🔐 SSH | `_ssh._tcp.local` |
+| 🏠 HomeKit | `_hap._tcp.local` |
+| 📁 SMB Shares | `_smb._tcp.local` |
+
+#### Examples
+
+**Filter by string:**
+```javascript
+dnssd.discover({
+  name: '_googlecast._tcp.local',
+  filter: 'Living Room'
+});
+```
+
+**Filter by function:**
+```javascript
+dnssd.discover({
+  name: '_http._tcp.local',
+  filter: (device) => device.service?.port === 80
+});
+```
+
+**Discover multiple services:**
+```javascript
+dnssd.discover({
+  name: ['_http._tcp.local', '_https._tcp.local'],
+  wait: 5
+});
+```
+
+**Quick discovery (return first match):**
+```javascript
+dnssd.discover({
+  name: '_airplay._tcp.local',
+  quick: true
+});
+```
+
+#### Response Object
+
+| Property | Type | Description |
+|:---------|:-----|:------------|
+| `address` | String | IPv4 address |
+| `fqdn` | String | Fully Qualified Domain Name |
+| `modelName` | String | Device model name |
+| `familyName` | String | Device friendly name |
+| `service` | Object | Service info (`port`, `protocol`, `type`) |
+| `packet` | DnsSdPacket | Raw mDNS packet |
+
+---
+
+### `startMonitoring()` method
+
+Starts listening to all mDNS/DNS-SD packets on the network.
+
+```javascript
+dnssd.ondata = (packet) => {
+  console.log('Received packet from:', packet.address);
+};
+
+await dnssd.startMonitoring();
+```
+
+---
+
+### `stopMonitoring()` method
+
+Stops the monitoring mode.
+
+```javascript
+await dnssd.stopMonitoring();
+```
+
+---
+
+### `ondata` event handler
+
+Callback function invoked for each received mDNS packet during monitoring.
+
+```javascript
+dnssd.ondata = (packet) => {
+  // packet is a DnsSdPacket object
+  console.log(packet.header);
+  console.log(packet.answers);
+};
+```
+
+---
+
+## 📦 DnsSdPacket Object
+
+The packet object contains parsed mDNS/DNS-SD data:
+
+```javascript
 {
   "header": {
     "id": 0,
-    "qr": 0,
-    "op": 0,
-    "aa": 0,
-    "tc": 0,
-    "rd": 0,
-    "ra": 0,
-    "z": 0,
-    "ad": 0,
-    "cd": 0,
-    "rc": 0,
-    "questions": 3,
-    "answers": 2,
-    "authorities": 0,
-    "additionals": 1
-  },
-  "questions": [
-    {
-      "name": "_homekit._tcp.local",
-      "type": "PTR",
-      "class": "IN"
-    },
-    {
-      "name": "A6A1A463-D197-53EA-892B-FFFFFFFFFFFF._homekit._tcp.local",
-      "type": "TXT",
-      "class": "IN"
-    },
-    {
-      "name": "_sleep-proxy._udp.local",
-      "type": "PTR",
-      "class": "IN"
-    }
-  ],
-  "answers": [
-    {
-      "name": "_homekit._tcp.local",
-      "type": "PTR",
-      "class": "IN",
-      "flash": false,
-      "ttl": 4500,
-      "rdata": "A6A1A463-D197-53EA-892B-FFFFFFFFFFFF._homekit._tcp.local"
-    },
-    {
-      "name": "_sleep-proxy._udp.local",
-      "type": "PTR",
-      "class": "IN",
-      "flash": false,
-      "ttl": 4500,
-      "rdata": "70-00-00-00.1 Apple TV._sleep-proxy._udp.local"
-    }
-  ],
-  "authorities": [],
-  "additionals": [
-    {
-      "name": "",
-      "type": "OPT",
-      "class": "",
-      "flash": false,
-      "ttl": 4500,
-      "rdata": "00 04 00 0e 00 24 c2 a5 3e 4c 7c b6 c0 a5 3e 4c 7c b4"
-    }
-  ],
-  "address": "192.168.11.24"
-}
-...
-```
-
-The object above is a [`DnsSdPacket`](#DnsSdPacket-object) object which represents a mDNS/DNS-SD response packet.
-
-
----------------------------------------
-## <a id="DnsSd-object">`DnsSd` object</a>
-
-In order to use the node-dns-sd, you have to load the node-dns-sd module as follows:
-
-```JavaScript
-const DnsSd = require('node-dns-sd');
-```
-
-In the code snippet above, the variable `DnsSd` is a `DnsSd` object. The `DnsSd` object has methods as described in sections below.
-
-### <a id="DnsSd-discover-method">discover() method</a>
-
-The `discover()` method discovers devices supporting the service specified to this method in the local network. This method returns a `Promise` object.
-
-This method takes a hash object containing the properties as follows:
-
-Property | Type    | Required | Description
-:--------|:--------|:---------|:-------------------------
-`name`   | String  | Required | Service name.(e.g., `"_googlecast._tcp.local"`)
-`type`   | String  | Optional | Query Type (e.g., `"PTR"`). The default value is `"*"`.
-`key`    | String  | Optional | This value must be `"address"` (default) or `"fqdn"`. This property indicates how to fold multiple DNS-SD query responses. See the description below for details.
-`wait`   | Integer | Optional | Duration of monitoring (sec). The default value is 3 sec.
-`quick`  | Boolean | Optional | If `true`, this method returns immediately after a device was found ignoring the value of the `wait`. The default value is `false`.
-`filter` | String  | Optional | If a string is specified to the `filter`, this method discovers only devices which the specified string is found in the `fqdn`, `address`, `modelName` or `familyName`.
-`filter` | Function | Optional | If a function is specified to the `filter`, this method discovers only devices for which the function returns `true`. See the sample code below for details.
-
-If you want to discover all services in the local netowrk, you can set the `name` property to `_services._dns-sd._udp.local'`.
-
-```javascript
-mDnsSd.discover({
-  name: '_services._dns-sd._udp.local',
-  type: 'PTR',
-  key: 'fqdn'
-}).then((device_list) =>{
-  console.log(JSON.stringify(device_list, null, '  '));
-}).catch((error) => {
-  console.error(error);
-});
-```
-
-The `type` property indicates the query type, such as `"PTR"`. This value must be a (Q)TYPE value defined in the [RFC 1035](https://tools.ietf.org/html/rfc1035) and [RFC 2782](https://tools.ietf.org/html/rfc2782). If this property is not specified, the wildcard `"*"` will be applied.
-
-The `key` property indicates how to fold multiple DNS-SD query responses. If the value is set to `"address"` or this property is not specified, the last response form an IP address will be reported. If you want to discover IP addresses rather than services, this mode is appropriate.
-
-If the value of the `key` property is set to `"fqdn"`, responses will be folded by each FQDN. In this mode, multiple responses with the same IP address could be included. If you want to discover services rather than IP address, this mode is appropriate.
-
-Basically you don't need to pass the `wait` property to this method. In most cases, the default value `3` (sec) works well.
-
-The code blow would find Google devices (Google Home, Google TV, etc.):
-
-```JavaScript
-mDnsSd.discover({
-  name: '_googlecast._tcp.local'
-}).then((device_list) =>{
-  console.log(JSON.stringify(device_list, null, '  '));
-}).catch((error) => {
-  console.error(error);
-});
-```
-
-The code above will output the result as follows:
-
-```
-[
-  {
-    "address": "192.168.11.20",
-    "fqdn": "BRAVIA-4K-GB-0000043926ff4f7fed3bf248db400000._googlecast._tcp.local",
-    "modelName": "BRAVIA 4K GB",
-    "familyName": "KJ-43X8300D",
-    "service": {
-      "port": 8009,
-      "protocol": "tcp",
-      "type": "googlecast"
-    },
-    "packet": {...}
-  },
-  {
-    "address": "192.168.11.12",
-    "fqdn": "Google-Home-000001eda257d1f8ea765acd79500000._googlecast._tcp.local",
-    "modelName": "Google Home",
-    "familyName": "Google Home in living room",
-    "service": {
-      "port": 8009,
-      "protocol": "tcp",
-      "type": "googlecast"
-    },
-    "packet": {...}
-  }
-]
-```
-
-A string is set to the `filter` parameter, this method limits to devices whose `fqdn`, `address`, `modelName` or `familyName` includes the string.
-
-```javascript
-mDnsSd.discover({
-  name: '_googlecast._tcp.local',
-  filter: 'Google Home',
-  quick: true
-}).then((device_list) =>{
-  console.log(JSON.stringify(device_list, null, '  '));
-}).catch((error) => {
-  console.error(error);
-});
-```
-
-A function is set to the `filter` parameter, this method limits to devices for which the function returns `true`. The function must return `true` or `false`.
-
-```javascript
-mDnsSd.discover({
-  name: '_googlecast._tcp.local',
-  filter: (devcie) => {
-    return (device['modelName'] === 'Google Home' && /Living room/.test(device['familyName']));
-  },
-  quick: true
-}).then((device_list) =>{
-  console.log(JSON.stringify(device_list, null, '  '));
-}).catch((error) => {
-  console.error(error);
-});
-```
-
-As you can see from the code above, an object representing a found device is passed to the function. You can evaluate the device information and limit to devices you want.
-
-The `discover()` method will pass a information list of the found devices to the callback function. Each device information in the list contains the properties as follows:
-
-Property      | Type    | Description
-:-------------|:--------|:---------------
-`address`     | String  | IPv4 address
-`fqdn`        | String  | Fully Qualified Domain Name
-`modelName`   | String  | Model Name
-`familyName`  | String  | Family Name
-`service`     | Object  |
-+`port`       | Integer | Port number (e.g., `8009`)
-+`protocol`   | String  | Protocol (e.g., `"tcp"`)
-+`type`       | String  | Service type (e.g., "`googlecast`")
-`packet`      | [`DnsSdPacket`](#DnsSdPacket-object) | An object representing the response packet
-
-Note that the values of properties other than the `address` are not necessarily set in this object. If the values are not obtained from the response packet, they will be set to `null`.
-
-Here are some examples:
-
-#### Apple TV
-
-```JavaScript
-mDnsSd.discover({
-  name: '_airplay._tcp.local'
-})
-```
-```
-[
-  {
-    "address": "192.168.11.29",
-    "fqdn": "Apple TV._airplay._tcp.local",
-    "modelName": "Apple TV J42dAP",
-    "familyName": null,
-    "service": {
-      "port": 7000,
-      "protocol": "tcp",
-      "type": "airplay"
-    },
-    "packet": {...}
-  }
-]
-```
-
-#### Canon Network printer
-
-```JavaScript
-mDnsSd.discover({
-  name: '_printer._tcp.local'
-})
-```
-```
-[
-  {
-    "address": "192.168.11.99",
-    "fqdn": "Canon MF720C Series._ipp._tcp.local",
-    "modelName": "Canon MF720C Series",
-    "familyName": null,
-    "service": {
-      "port": 80,
-      "protocol": "tcp",
-      "type": "ipp"
-    },
-    "packet": {...}
-  }
-]
-```
-
-#### Philips Hue Bridge
-
-```JavaScript
-mDnsSd.discover({
-  name: '_hap._tcp.local'
-})
-```
-```
-[
-  {
-    "address": "192.168.11.18",
-    "fqdn": "Philips hue - 123ABC._hap._tcp.local",
-    "modelName": "Philips hue BSB002",
-    "familyName": null,
-    "service": {
-      "port": 8080,
-      "protocol": "tcp",
-      "type": "hap"
-    },
-    "packet": {...}
-  }
-]
-```
-
-#### Raspberry Pi (Raspbian)
-
-```JavaScript
-mDnsSd.discover({
-  name: 'raspberrypi.local'
-})
-```
-```
-[
-  {
-    "address": "192.168.11.34",
-    "fqdn": null,
-    "productName": null,
-    "modelName": null,
-    "familyName": null,
-    "service": null,
-    "packet": {...}
-  }
-]
-```
-
-### <a id="DnsSd-startMonitoring-method">startMonitoring() method</a>
-
-The `startMonitoring()` method starts the monitoring mode and  listens to mDNS/DNS-SD packets. This method returns a `Promise` object.
-
-You can catch incoming packets setting a callback function to the [`ondata`](#DnsSd-ondata-event-handler) event handler.
-
-```JavaScript
-mDnsSd.ondata = (packet) => {
-  console.log(JSON.stringify(packet, null, '  '));
-};
-
-mDnsSd.startMonitoring().then(() => {
-  console.log('Started.');
-}).catch((error) => {
-  console.error(error);
-});
-```
-
-Whenever a mDNS/DNS-SD packet is received, a [`DnsSdPacket`](#DnsSdPacket-object) object will be passed to the callback function. See the section "[`DnsSdPacket`](#DnsSdPacket-object) object" for more details.
-
-### <a id="DnsSd-stopMonitoring-method">stopMonitoring() method</a>
-
-The `stopMonitoring()` method stops the monitoring mode started by the [`startMonitoring()`](#DnsSd-startMonitoring-method) method. This method returns a `Promise` object.
-
-```JavaScript
-mDnsSd.stopMonitoring().then(() => {
-  console.log('Stopped.');
-}).catch((error) => {
-  console.error(error);
-});
-```
-
-### <a id="DnsSd-ondata-event-handler">`ondata` event handler</a>
-
-The `ondata` event handler will be called whenever a mDNS/DNS-SD packet is received. Note that this event handler works only if the monitoring mode is active.
-
-See the section "[`startMonitoring()` method](#DnsSd-startMonitoring-method)" for more details.
-
----------------------------------------
-## <a id="DnsSdPacket-object">`DnsSdPacket` object</a>
-
-The `DnsSdPacket` object represents a mDNS/DNS-SD packet. It is a hash object containing the properties as follows:
-
-```
-{
-  "header": {
-    "id": 0,
-    "qr": 1,
+    "qr": 1,        // 0 = Query, 1 = Response
     "op": 0,
     "aa": 1,
     "tc": 0,
     "rd": 0,
     "ra": 0,
-    "z": 0,
-    "ad": 0,
-    "cd": 0,
-    "rc": 0,
     "questions": 0,
     "answers": 1,
     "authorities": 0,
     "additionals": 3
   },
-  "questions": [],
+  "questions": [...],
   "answers": [
     {
       "name": "_googlecast._tcp.local",
@@ -486,119 +288,129 @@ The `DnsSdPacket` object represents a mDNS/DNS-SD packet. It is a hash object co
       "class": "IN",
       "flash": false,
       "ttl": 120,
-      "rdata": "Google-Home-0ae0c1eda257d1f8ea765acd00000000._googlecast._tcp.local"
+      "rdata": "Device-Name._googlecast._tcp.local"
     }
   ],
-  "authorities": [],
-  "additionals": [
-    {
-      "name": "Google-Home-0ae0c1eda257d1f8ea765acd00000000._googlecast._tcp.local",
-      "type": "TXT",
-      "class": "IN",
-      "flash": true,
-      "ttl": 4500,
-      "rdata": {
-        "id": "0ae0c1eda257d1f8ea765acd00000000",
-        "cd": "A4030CC6FEF4C94DFCD31B0500000000",
-        "rm": "2CE3F99700000000",
-        "ve": "05",
-        "md": "Google Home",
-        "ic": "/setup/icon.png",
-        "fn": "Google Home in living room",
-        "ca": "2052",
-        "st": "0",
-        "bs": "FA8F00000000",
-        "nf": "1",
-        "rs": ""
-      },
-      "rdata_buffer": {
-        "id": {Buffer object},
-        "cd": {Buffer object},
-        "rm": {Buffer object},
-        "ve": {Buffer object},
-        "md": {Buffer object},
-        "ic": {Buffer object},
-        "fn": {Buffer object},
-        "ca": {Buffer object},
-        "st": {Buffer object},
-        "bs": {Buffer object},
-        "nf": {Buffer object},
-        "rs": {Buffer object}
-      }
-    },
-    {
-      "name": "Google-Home-0ae0c1eda257d1f8ea765acd00000000._googlecast._tcp.local",
-      "type": "SRV",
-      "class": "IN",
-      "flash": true,
-      "ttl": 120,
-      "rdata": {
-        "priority": 0,
-        "weight": 0,
-        "port": 8009,
-        "target": "0ae0c1ed-a257-d1f8-ea76-000000000000.local"
-      }
-    },
-    {
-      "name": "0ae0c1ed-a257-d1f8-ea76-000000000000.local",
-      "type": "A",
-      "class": "IN",
-      "flash": true,
-      "ttl": 120,
-      "rdata": "192.168.11.12"
-    }
-  ],
-  "address": "192.168.11.12"
+  "authorities": [...],
+  "additionals": [...],
+  "address": "192.168.1.100"
 }
 ```
 
-Note that the `rdata_buffer` property is added only if the type is `"TXT"`. Each value in the `rdata_buffer` is a `Buffer` object. Some devices set a binary data to each value. You can parse the binary data using this property.
+---
 
-See the section "[References](#References)" for more details.
+## 🔷 TypeScript
 
----------------------------------------
-## <a id="Release-Note">Release Note</a>
+Full TypeScript support is included. Import types directly:
 
-* v1.0.1 (2023-04-05)
-    * Fixed the constant variable issue (thanks to [@cybercode](https://github.com/futomi/node-dns-sd/issues/11))
-* v1.0.0 (2023-03-11)
-    * Rewrote all codes in modern coding style using `class`, `async`, `await`, etc.
-    * Supported multi-homed environment.
-* v0.4.2 (2020-09-30)
-    * Catch dropMembership error (thanks to [@bwp91](https://github.com/futomi/node-dns-sd/pull/6))
-* v0.4.1 (2020-04-09)
-    * Fix of address already in use on udp.addMembership method (thanks to [@SlyAndrew](https://github.com/futomi/node-dns-sd/pull/5))
-* v0.4.0 (2019-02-24)
-    * Added the `rdata_buffer` property in the [`DnsSdPacket`](#DnsSdPacket-object) object.
-* v0.3.0 (2018-10-25)
-    * Added the `key` and `type` parameters to the [`discover()`](#DnsSd-discover-method) method.
-* v0.2.1 (2018-10-24)
-    * Improved the device discovery. In this version, all available IPv4 network interfaces are joined to a multicast group, so that all devices in the local network are sure to be discovered.
-    * Fixed a bug that some event listeners did not be removed when the discovery process is finished.
-* v0.2.0 (2018-08-02)
-    * Supported a function-based filtering mechanism in the [`discover()`](#DnsSd-discover-method) method. Now you can specify your custom filter as a function to the `filter` paramter of the `discover()` method. (thanks to [@dayflower](https://github.com/futomi/node-dns-sd/issues/2))
-* v0.1.2 (2018-01-06)
-    * Fixed a bug that an exeption was thrown if the `filter` was specified to the `discover()` method.
-* v0.1.0 (2018-01-06)
-    * Added the parameter `quick` and `filter` to the [`discover()`](#DnsSd-discover-method) method.
-    * Fixed a bug that a UDP socket was not closed properly.
-* v0.0.1 (2018-01-05)
-    * First public release
+```typescript
+import dnssd, {
+  DiscoverParams,
+  DiscoveredDevice,
+  DnsPacket,
+  ServiceInfo
+} from '@fonestardev/node-dns-sd';
 
----------------------------------------
-## <a id="References">References</a>
+const params: DiscoverParams = {
+  name: '_http._tcp.local',
+  localhost: true,
+  wait: 5
+};
 
-* [RFC 1035 (DOMAIN NAMES - IMPLEMENTATION AND SPECIFICATION)](https://tools.ietf.org/html/rfc1035)
-* [RFC 6762 (Multicast DNS)](https://tools.ietf.org/html/rfc6762)
-* [RFC 6763 (DNS-Based Service Discovery)](https://tools.ietf.org/html/rfc6763)
-* [RFC 2782 (A DNS RR for specifying the location of services (DNS SRV))](https://tools.ietf.org/html/rfc2782)
+const devices: DiscoveredDevice[] = await dnssd.discover(params);
 
----------------------------------------
-## <a id="License">License</a>
+devices.forEach((device: DiscoveredDevice) => {
+  console.log(`Found: ${device.address}`);
+});
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+npm test
+
+# Watch mode
+npm run test:watch
+
+# Run examples
+npm run example:basic
+npm run example:localhost
+npm run example:filter
+npm run example:monitor
+```
+
+---
+
+## 📝 Release Notes
+
+### v1.1.0 (2024)
+- 🆕 Added `localhost` parameter to discover services on local machine
+- 🔒 Security fixes for DNS pointer loop attacks
+- 🔒 Buffer bounds checking to prevent overflows
+- 🔒 Label length validation (RFC 1035 compliance)
+- 📝 Added TypeScript type definitions
+- 🧪 Added comprehensive unit tests (76 tests)
+- 📚 Added usage examples
+
+### v1.0.1 (2023-04-05)
+- Fixed the constant variable issue
+
+### v1.0.0 (2023-03-11)
+- Rewrote all codes in modern style using `class`, `async`, `await`
+- Supported multi-homed environment
+
+### v0.4.2 (2020-09-30)
+- Catch dropMembership error
+
+### v0.4.1 (2020-04-09)
+- Fix address already in use on udp.addMembership
+
+### v0.4.0 (2019-02-24)
+- Added `rdata_buffer` property for TXT records
+
+### v0.3.0 (2018-10-25)
+- Added `key` and `type` parameters to discover()
+
+<details>
+<summary>📜 Older versions</summary>
+
+### v0.2.1 (2018-10-24)
+- Improved device discovery with multi-interface support
+
+### v0.2.0 (2018-08-02)
+- Added function-based filtering
+
+### v0.1.2 (2018-01-06)
+- Fixed filter exception bug
+
+### v0.1.0 (2018-01-06)
+- Added `quick` and `filter` parameters
+
+### v0.0.1 (2018-01-05)
+- First public release
+
+</details>
+
+---
+
+## 📚 References
+
+- 📄 [RFC 1035 - Domain Names Implementation](https://tools.ietf.org/html/rfc1035)
+- 📄 [RFC 6762 - Multicast DNS](https://tools.ietf.org/html/rfc6762)
+- 📄 [RFC 6763 - DNS-Based Service Discovery](https://tools.ietf.org/html/rfc6763)
+- 📄 [RFC 2782 - DNS SRV Records](https://tools.ietf.org/html/rfc2782)
+
+---
+
+## 📄 License
 
 The MIT License (MIT)
 
 Copyright (c) 2018-2023 Futomi Hatano
+Copyright (c) 2024 Fonestar Dev
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
