@@ -346,7 +346,7 @@ npm run example:monitor
 
 ## 📝 Release Notes
 
-### v1.1.0 (2024)
+### v2.0.1 (2024)
 - 🆕 Added `localhost` parameter to discover services on local machine
 - 🔒 Security fixes for DNS pointer loop attacks
 - 🔒 Buffer bounds checking to prevent overflows
