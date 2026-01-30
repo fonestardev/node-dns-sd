@@ -21,6 +21,7 @@
     "example:monitor": "node examples/monitor.js"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "mocha": "^10.2.0"
   },
   "keywords": [

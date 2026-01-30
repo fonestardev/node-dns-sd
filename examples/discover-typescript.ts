@@ -13,7 +13,7 @@ import dnssd, {
     DiscoveredDevice,
     DnsPacket,
     ServiceInfo
-} from 'node-dns-sd';
+} from '@fonestardev/node-dns-sd';
 
 async function discoverWithTypes(): Promise<void> {
     console.log('TypeScript mDNS Discovery Example\n');
